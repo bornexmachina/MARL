@@ -6,12 +6,26 @@ from itertools import product
 
 
 # Helper functions -> refactor from Board and Player
+def _print_board(board):
+    symbol_map = {PlayerSymbol.EMPTY: ' ',
+                    PlayerSymbol.X: 'X',
+                    PlayerSymbol.Y: 'O'}
+    
+    for i in range(3):
+        row = ' | '.join(symbol_map[PlayerSymbol(cell)] for cell in board[i])
+        print(row)
+        if i < 2:
+            print('--+---+--')
+
+    print("***")
+
+
 def _check_winner(board):
     for player_symbol in [PlayerSymbol.X, PlayerSymbol.Y]:
-        _rows = np.any(board.sum(axis=1) == key * 3)
-        _cols = np.any(board.sum(axis=0) == key * 3)
-        _diag = np.trace(board) == key * 3
-        _antidiag = np.trace(np.fliplr(board)) == key * 3
+        _rows = np.any(board.sum(axis=1) == player_symbol * 3)
+        _cols = np.any(board.sum(axis=0) == player_symbol * 3)
+        _diag = np.trace(board) == player_symbol * 3
+        _antidiag = np.trace(np.fliplr(board)) == player_symbol * 3
 
         if _rows or _cols or _diag or _antidiag:
             return player_symbol
@@ -203,19 +217,8 @@ class Board:
             player = self.player_1 if self.current_player == PlayerSymbol.X else self.player_2
             action = player.choose_action(positions, self.board)
             self.update_state(action)
+            _print_board(self.board)
 
-    def print_board(self):
-        symbol_map = {PlayerSymbol.EMPTY: ' ',
-                      PlayerSymbol.X: 'X',
-                      PlayerSymbol.Y: 'O'}
-        
-        for i in range(3):
-            row = ' | '.join(symbol_map[PlayerSymbol(cell)] for cell in self.board[i])
-            print(row)
-            if i < 2:
-                print('--+---+--')
-
-        print("***")
 
 def main():
     # Training AI players
