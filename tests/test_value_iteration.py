@@ -181,8 +181,111 @@ class TestUtils(unittest.TestCase):
         expected_positions = [(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)]
         self.assertEqual(available_positions, expected_positions)
     
+    def test_is_valid_state_empty_board(self):
+        board = np.zeros((3, 3), dtype=int)
+        valid = ttt._is_valid_state(board)
+        expected = True
+        self.assertEqual(valid, expected)
 
-    
+    def test_is_valid_too_large_board(self):
+        board = np.zeros((4, 4), dtype=int)
+        with self.assertRaises(AssertionError):
+            ttt._is_valid_state(board)
+
+    def test_is_valid_x_ahead_y_1(self):
+        board = np.array([[0, 0, 0],
+                          [0, 1, 0],
+                          [0, 0, 0]])
+        valid = ttt._is_valid_state(board)
+        expected = True
+        self.assertEqual(valid, expected)
+
+    def test_is_valid_x_ahead_y_2(self):
+        board = np.array([[0, 0, 0],
+                          [0, 1, -1],
+                          [0, 0, 1]])
+        valid = ttt._is_valid_state(board)
+        expected = True
+        self.assertEqual(valid, expected)
+
+    def test_is_valid_x_draw_y_1(self):
+        board = np.array([[0, 0, 0],
+                          [0, 1, -1],
+                          [0, 0, 0]])
+        valid = ttt._is_valid_state(board)
+        expected = True
+        self.assertEqual(valid, expected)
+
+    def test_is_valid_x_draw_y_2(self):
+        board = np.array([[1, -1, 1],
+                          [-1, 1, -1],
+                          [1, -1, 0]])
+        valid = ttt._is_valid_state(board)
+        expected = True
+        self.assertEqual(valid, expected)
+
+    def test_is_valid_x_winner(self):
+        board = np.array([[1, -1, 0],
+                          [0, 1, -1],
+                          [0, 0, 1]])
+        valid = ttt._is_valid_state(board)
+        expected = True
+        self.assertEqual(valid, expected)
+
+    def test_is_valid_y_winner(self):
+        board = np.array([[1, -1, -1],
+                          [0, 1, -1],
+                          [1, 1, -1]])
+        valid = ttt._is_valid_state(board)
+        expected = True
+        self.assertEqual(valid, expected)
+
+    def test_is_valid_draw(self):
+        board = np.array([[1, -1, -1],
+                          [-1, 1, 1],
+                          [1, 1, -1]])
+        valid = ttt._is_valid_state(board)
+        expected = True
+        self.assertEqual(valid, expected)
+
+    def test_is_valid_wrong_symbols(self):
+        board = np.array([[1, -1, -1],
+                          [2, 1, -1],
+                          [1, 1, -1]])
+        with self.assertRaises(AssertionError):
+            ttt._is_valid_state(board)
+
+    def test_is_invalid_too_much_x_1(self):
+        board = np.array([[1, 1, 1],
+                          [1, 1, 1],
+                          [1, 1, 1]])
+        valid = ttt._is_valid_state(board)
+        expected = False
+        self.assertEqual(valid, expected)
+
+    def test_is_invalid_too_much_x_2(self):
+        board = np.array([[1, 1, 0],
+                          [0, 0, 0],
+                          [0, 0, 0]])
+        valid = ttt._is_valid_state(board)
+        expected = False
+        self.assertEqual(valid, expected)
+
+    def test_is_invalid_too_much_y_1(self):
+        board = np.array([[-1, -1, 1],
+                          [-1, -1, 1],
+                          [-1, -1, 1]])
+        valid = ttt._is_valid_state(board)
+        expected = False
+        self.assertEqual(valid, expected)
+
+    def test_is_invalid_too_much_y_2(self):
+        board = np.array([[-1, -1, 0],
+                          [0, 0, 0],
+                          [0, 0, 1]])
+        valid = ttt._is_valid_state(board)
+        expected = False
+        self.assertEqual(valid, expected)
 
 
 if __name__ == "__main__":

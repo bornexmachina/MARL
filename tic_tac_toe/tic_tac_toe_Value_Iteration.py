@@ -49,11 +49,24 @@ def _get_available_positions(board):
         return list(zip(*np.where(np.array(board).reshape(3,3) == PlayerSymbol.EMPTY)))
 
 
-def _is_valid_state(state):
-    board = np.array(state)
+def _is_valid_state(board):
+    """
+    Hard wired who goes first -> we might come up with something better at some point
+    valid states assuming X starts first:
+        - empty
+        - same number of X and Y
+        - 1 X more than Y --> X has won the game
+        - only X, Y and EMPTY symbols on the board
+    """
+    assert board.shape == (3, 3)
     x_count = np.sum(board == PlayerSymbol.X)
     y_count = np.sum(board == PlayerSymbol.Y)
-    return not (y_count > x_count or x_count - y_count > 1)
+    empty_count = np.sum(board == PlayerSymbol.EMPTY)
+
+    # assertion is better -> if we add weird symbols, than the whole game is corrupt
+    assert x_count + y_count + empty_count == 9
+
+    return (x_count == y_count or x_count - y_count == 1)
 
 
 def _is_full(state):
