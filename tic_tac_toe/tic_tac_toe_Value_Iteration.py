@@ -215,18 +215,6 @@ class Board:
             self.switch_players()
             return True
         return False
-        
-    def reset_board(self):
-        self.board = np.zeros((3, 3), dtype=int)
-        self.has_ended = False
-        self.current_player = PlayerSymbol.X
-
-    def reset_game(self):
-        winner = self.get_winner()
-        self.reward_players(winner)
-        self.player_1.reset()
-        self.player_2.reset()
-        self.reset_board()
 
     def play(self):
         while not self.has_ended:
