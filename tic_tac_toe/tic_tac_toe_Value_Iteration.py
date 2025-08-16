@@ -76,8 +76,9 @@ def _is_full(state):
 def _generate_all_states():
     all_states = []
     for cells in product([PlayerSymbol.EMPTY, PlayerSymbol.X, PlayerSymbol.Y], repeat=9):
-        if _is_valid_state(cells):
-            all_states.append(tuple(cells))
+        board = np.array(cells).reshape(3, 3)
+        if _is_valid_state(board):
+            all_states.append(tuple(board.flatten()))
     return all_states
 
 
@@ -132,6 +133,9 @@ class Player(PlayerBaseClass):
     def train_value_iteration(self, theta=1e-6):
         """Offline value iteration to compute Q-table."""
         states = _generate_all_states()
+
+        # we need some cleanup - board should be (3, 3) numpy array -> but unhashable and thus not usable as key in dict
+        # state is then tuple(board.flatten()) --> hashable
         actions_dict = {s: _get_available_positions(s) for s in states}
         self.Q = {s: {a: 0.0 for a in actions_dict[s]} for s in states}
 
@@ -201,7 +205,7 @@ class Board:
 
             if winner is not None:
                 self.has_ended = True
-                self.print_board()
+                _print_board(self.board)
 
                 if winner == PlayerSymbol.EMPTY:
                     print("Draw!")

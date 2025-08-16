@@ -287,6 +287,9 @@ class TestUtils(unittest.TestCase):
         expected = False
         self.assertEqual(valid, expected)
 
+    def test_generate_all_states(self):
+        all_states = ttt._generate_all_states()
+
 
 if __name__ == "__main__":
     unittest.main()
