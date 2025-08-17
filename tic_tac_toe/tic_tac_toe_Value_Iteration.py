@@ -13,11 +13,11 @@ def _print_board(board):
     
     for i in range(3):
         row = ' | '.join(symbol_map[PlayerSymbol(cell)] for cell in board[i])
-        print(row)
+        print(row, flush=True)
         if i < 2:
-            print('--+---+--')
+            print('--+---+--', flush=True)
 
-    print("***")
+    print("***", flush=True)
 
 
 def _check_winner(board):
@@ -90,6 +90,44 @@ def _state_to_board(state):
     return np.array(state).reshape(3, 3)
 
 
+def _find_max_and_argmax_in_dict(dictionary):
+    """
+    Explicit assumption, we have 1 to 1 key-value relationship
+    """
+    flat_keys = np.array(list(dictionary.keys()))
+    tmp_vals = list(dictionary.values())
+    
+    # just to make sure that no value is a list itself
+    flat_vals = []
+
+    for element in tmp_vals:
+        if hasattr(element, '__iter__'):
+            for l in element:
+                flat_vals.append(l)
+        else:
+            flat_vals.append(element)
+
+    flat_vals = np.array(flat_vals)
+
+    assert len(flat_keys) == len(flat_vals)
+
+    max_value = max(flat_vals)
+    argmax_value = flat_keys[np.where(flat_vals == max_value)[0]]
+
+    return max_value, argmax_value
+
+
+def _opponent(player_symbol):
+    return PlayerSymbol.Y if player_symbol == PlayerSymbol.X else PlayerSymbol.X
+
+
+def _to_move(state):
+    board = _state_to_board(state)
+    x = np.sum(board == PlayerSymbol.X)
+    y = np.sum(board == PlayerSymbol.Y)
+    return PlayerSymbol.X if x == y else PlayerSymbol.Y
+
+
 class PlayerSymbol(IntEnum):
     EMPTY = 0
     X = 1
@@ -121,7 +159,8 @@ class Player(PlayerBaseClass):
     def __init__(self, name, player_symbol, gamma=1.0):
         super().__init__(name, player_symbol)
         self.gamma = gamma
-        self.Q = {}
+        self.V = {}
+        self.policy = {}
 
     def next_state_and_reward(self, state, action, player_symbol):
         board = _state_to_board(state).copy()
@@ -137,34 +176,75 @@ class Player(PlayerBaseClass):
             return _board_to_state(board), -1
 
     def train_value_iteration(self, theta=1e-6):
-        """Offline value iteration to compute Q-table."""
+        """
+        Offline value iteration to compute V-table.
+        Value iteration updates V(s) --> only depends on the state
+
+        First set V to arbitrary value e.g. V(s) = 0 for all s 
+        and define the policy in each state as None --> we will update the policy for policy extraction
+        
+        Bellman equation says:
+            V'(s) <-- max_{a in A} sum_{s' in S} P_{a}(s' | s) [r(s, a, s') + gamma * V(s')]
+        
+        The transition is deterministic --> P_{a}(s' | s) is always one.
+        Also for now just ignore the discountinuation i.e. gamma = 1
+
+        for direct implementation we use the algorithm as outlined in
+        https://gibberblot.github.io/rl-notes/single-agent/value-iteration.html
+        """
         states = _generate_all_states()
 
         actions_dict = {s: _get_available_positions(s) for s in states}
-        self.Q = {s: {a: 0.0 for a in actions_dict[s]} for s in states}
+        self.V = {s: 0.0 for s in states}
+        self.policy = {s: None for s in states}
+
+        Q = {s: {a: 0.0 for a in actions_dict[s]} for s in states}
 
         while True:
             delta = 0
             for s in states:
+                to_move = _to_move(s)
+
                 for a in actions_dict[s]:
-                    ns, reward = self.next_state_and_reward(s, a, self.player_symbol)
-                    future_q = 0.0
-                    if ns in self.Q and self.Q[ns]:
-                        future_q = max(self.Q[ns].values())
-                    old_q = self.Q[s][a]
-                    self.Q[s][a] = reward + self.gamma * future_q
-                    delta = max(delta, abs(old_q - self.Q[s][a]))
+                    if to_move == self.player_symbol:
+                        # per action a we arrive deterministically at position s'
+                        # the sum over s' in S is thus exactly one term
+                        s_, reward = self.next_state_and_reward(s, a, self.player_symbol)
+                    else:
+                        s_, reward_opp = self.next_state_and_reward(s, a, _opponent(self.player_symbol))
+                        reward = - reward_opp
+
+                    if _is_valid_board(_state_to_board(s_)):
+                        gamma_V = 0.0 if _check_winner(_state_to_board(s_)) is not None else self.gamma * self.V[s_]
+                        Q[s][a] = reward + gamma_V
+
+                if Q[s]:
+                    if to_move == self.player_symbol:
+                        # after the iteration we have to update delta as
+                        # delta <-- max(delta, | max_{a in A} Q(s, a) - V(s) |)
+                        max_a, argmax_a = _find_max_and_argmax_in_dict(Q[s])
+                        delta = max(delta, np.abs(max_a - self.V[s]))
+
+                        self.V[s] = max_a
+                        self.policy[s] = tuple(random.choice(argmax_a))
+                    else:
+                        min_val = min(Q[s].values())
+                        delta = max(delta, abs(min_val - self.V[s]))
+                        self.V[s] = min_val
+                        self.policy[s] = None
+            
             if delta < theta:
                 break
 
-    def choose_action(self, positions, board):
+    def choose_action(self, board):
         state = _board_to_state(board)
-        q_values = self.Q.get(state, {})
-        if not q_values:
-            return random.choice(positions)
-        max_q = max(q_values.values())
-        best_actions = [a for a, q in q_values.items() if q == max_q]
-        return random.choice(best_actions)
+
+        to_move = _to_move(_board_to_state(board))
+
+        if to_move != self.player_symbol:
+            return None
+    
+        return self.policy[state]
 
     def save_policy(self):
         with open(f'policy_{self.name}.pkl', 'wb') as fw:
@@ -176,7 +256,8 @@ class Player(PlayerBaseClass):
 
 
 class HumanPlayer(PlayerBaseClass):
-    def choose_action(self, positions, board):
+    def choose_action(self, board):
+        positions = _get_available_positions(_board_to_state(board))
         while True:
             try:
                 row = int(input("Input your action row (0-2):"))
@@ -203,6 +284,8 @@ class Board:
         self.current_player = PlayerSymbol.X if self.current_player == PlayerSymbol.Y else PlayerSymbol.Y
     
     def update_state(self, action):
+        if action is None:
+            raise ValueError("Action is not allowed!")
         if action in _get_available_positions(self.board):
             self.board[action] = self.current_player
             winner = _check_winner(self.board)
@@ -217,14 +300,11 @@ class Board:
                     print(f"Winner is Player {_get_winner_name(winner)}!")
 
             self.switch_players()
-            return True
-        return False
 
     def play(self):
         while not self.has_ended:
-            positions = _get_available_positions(self.board)
             player = self.player_1 if self.current_player == PlayerSymbol.X else self.player_2
-            action = player.choose_action(positions, self.board)
+            action = player.choose_action(self.board)
             self.update_state(action)
             _print_board(self.board)
 
@@ -233,10 +313,6 @@ def main():
     # Training AI players
     player1 = Player("AI Player 1", PlayerSymbol.X)
     player1.train_value_iteration()
-    player2 = Player("AI Player 2", PlayerSymbol.Y)
-    player2.train_value_iteration()
-
-    board = Board(player1, player2)
     
     # Play against a human
     human_player = HumanPlayer("Human", PlayerSymbol.Y)

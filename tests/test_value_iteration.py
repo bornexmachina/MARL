@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from io import StringIO
 from contextlib import redirect_stdout
-from tic_tac_toe import tic_tac_toe_Value_Iteration as ttt
+from tic_tac_toe import tic_tac_toe_value_iteration as ttt
 
 
 class TestUtils(unittest.TestCase):
@@ -289,7 +289,9 @@ class TestUtils(unittest.TestCase):
 
     def test_generate_all_states(self):
         all_states = ttt._generate_all_states()
-
+        number_states = len(all_states)
+        max_number_states = 3 ** 9
+        self.assertTrue(number_states < max_number_states)
 
 if __name__ == "__main__":
     unittest.main()
