@@ -181,22 +181,22 @@ class TestUtils(unittest.TestCase):
         expected_positions = [(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)]
         self.assertEqual(available_positions, expected_positions)
     
-    def test_is_valid_state_empty_board(self):
+    def test_is_valid_empty_board(self):
         board = np.zeros((3, 3), dtype=int)
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = True
         self.assertEqual(valid, expected)
 
     def test_is_valid_too_large_board(self):
         board = np.zeros((4, 4), dtype=int)
         with self.assertRaises(AssertionError):
-            ttt._is_valid_state(board)
+            ttt._is_valid_board(board)
 
     def test_is_valid_x_ahead_y_1(self):
         board = np.array([[0, 0, 0],
                           [0, 1, 0],
                           [0, 0, 0]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = True
         self.assertEqual(valid, expected)
 
@@ -204,7 +204,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[0, 0, 0],
                           [0, 1, -1],
                           [0, 0, 1]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = True
         self.assertEqual(valid, expected)
 
@@ -212,7 +212,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[0, 0, 0],
                           [0, 1, -1],
                           [0, 0, 0]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = True
         self.assertEqual(valid, expected)
 
@@ -220,7 +220,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[1, -1, 1],
                           [-1, 1, -1],
                           [1, -1, 0]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = True
         self.assertEqual(valid, expected)
 
@@ -228,7 +228,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[1, -1, 0],
                           [0, 1, -1],
                           [0, 0, 1]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = True
         self.assertEqual(valid, expected)
 
@@ -236,7 +236,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[1, -1, -1],
                           [0, 1, -1],
                           [1, 1, -1]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = True
         self.assertEqual(valid, expected)
 
@@ -244,7 +244,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[1, -1, -1],
                           [-1, 1, 1],
                           [1, 1, -1]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = True
         self.assertEqual(valid, expected)
 
@@ -253,13 +253,13 @@ class TestUtils(unittest.TestCase):
                           [2, 1, -1],
                           [1, 1, -1]])
         with self.assertRaises(AssertionError):
-            ttt._is_valid_state(board)
+            ttt._is_valid_board(board)
 
     def test_is_invalid_too_much_x_1(self):
         board = np.array([[1, 1, 1],
                           [1, 1, 1],
                           [1, 1, 1]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = False
         self.assertEqual(valid, expected)
 
@@ -267,7 +267,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[1, 1, 0],
                           [0, 0, 0],
                           [0, 0, 0]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = False
         self.assertEqual(valid, expected)
 
@@ -275,7 +275,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[-1, -1, 1],
                           [-1, -1, 1],
                           [-1, -1, 1]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = False
         self.assertEqual(valid, expected)
 
@@ -283,7 +283,7 @@ class TestUtils(unittest.TestCase):
         board = np.array([[-1, -1, 0],
                           [0, 0, 0],
                           [0, 0, 1]])
-        valid = ttt._is_valid_state(board)
+        valid = ttt._is_valid_board(board)
         expected = False
         self.assertEqual(valid, expected)
 

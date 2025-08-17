@@ -45,8 +45,8 @@ def _get_winner_name(winner):
         return "Draw"
 
 
-def _get_available_positions(board):
-        return list(zip(*np.where(np.array(board).reshape(3,3) == PlayerSymbol.EMPTY)))
+def _get_available_positions(state):
+        return list(zip(*np.where(_state_to_board(state) == PlayerSymbol.EMPTY)))
 
 
 def _is_valid_board(board):
