@@ -49,7 +49,7 @@ def _get_available_positions(board):
         return list(zip(*np.where(np.array(board).reshape(3,3) == PlayerSymbol.EMPTY)))
 
 
-def _is_valid_state(board):
+def _is_valid_board(board):
     """
     Hard wired who goes first -> we might come up with something better at some point
     valid states assuming X starts first:
@@ -75,11 +75,19 @@ def _is_full(state):
 
 def _generate_all_states():
     all_states = []
-    for cells in product([PlayerSymbol.EMPTY, PlayerSymbol.X, PlayerSymbol.Y], repeat=9):
-        board = np.array(cells).reshape(3, 3)
-        if _is_valid_state(board):
-            all_states.append(tuple(board.flatten()))
+    for state in product([PlayerSymbol.EMPTY, PlayerSymbol.X, PlayerSymbol.Y], repeat=9):
+        board = _state_to_board(state)
+        if _is_valid_board(board):
+            all_states.append(state)
     return all_states
+
+
+def _board_to_state(board):
+    return tuple(board.flatten())
+
+
+def _state_to_board(state):
+    return np.array(state).reshape(3, 3)
 
 
 class PlayerSymbol(IntEnum):
@@ -110,32 +118,28 @@ class Player(PlayerBaseClass):
     """
     Implementation of Q-learning with a state history and backpropagation of the reward
     """
-    def __init__(self, name, player_symbol, epsilon=0.1, gamma=0.9, alpha=0.1):
+    def __init__(self, name, player_symbol, gamma=1.0):
         super().__init__(name, player_symbol)
-        self.epsilon = epsilon
         self.gamma = gamma
-        self.alpha = alpha
         self.Q = {}
 
     def next_state_and_reward(self, state, action, player_symbol):
-        board = np.array(state).reshape(3,3).copy()
+        board = _state_to_board(state).copy()
         board[action] = player_symbol
         winner = _check_winner(board)
         if winner == player_symbol:
-            return tuple(board.flatten()), 1
+            return _board_to_state(board), 1
         elif winner == PlayerSymbol.EMPTY:
-            return tuple(board.flatten()), 0
+            return _board_to_state(board), 0
         elif winner is None:
-            return tuple(board.flatten()), 0
+            return _board_to_state(board), 0
         else:
-            return tuple(board.flatten()), -1
+            return _board_to_state(board), -1
 
     def train_value_iteration(self, theta=1e-6):
         """Offline value iteration to compute Q-table."""
         states = _generate_all_states()
 
-        # we need some cleanup - board should be (3, 3) numpy array -> but unhashable and thus not usable as key in dict
-        # state is then tuple(board.flatten()) --> hashable
         actions_dict = {s: _get_available_positions(s) for s in states}
         self.Q = {s: {a: 0.0 for a in actions_dict[s]} for s in states}
 
@@ -154,7 +158,7 @@ class Player(PlayerBaseClass):
                 break
 
     def choose_action(self, positions, board):
-        state = tuple(board.flatten())
+        state = _board_to_state(board)
         q_values = self.Q.get(state, {})
         if not q_values:
             return random.choice(positions)
