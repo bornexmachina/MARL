@@ -248,11 +248,11 @@ class Player(PlayerBaseClass):
 
     def save_policy(self):
         with open(f'policy_{self.name}.pkl', 'wb') as fw:
-            pickle.dump(self.Q, fw)  # Save Q-table instead of undefined states_value
+            pickle.dump(self.policy, fw)
 
     def load_policy(self, file):
         with open(file, 'rb') as fr:
-            self.Q = pickle.load(fr)  # Load Q-table
+            self.policy = pickle.load(fr)
 
 
 class HumanPlayer(PlayerBaseClass):

@@ -1,0 +1,13 @@
+We have two options how to model the game
+    - explicit max(min) modeling --> we are aware of the opponent
+    - implicit solo-player modeling --> we assume that there is only one player and handle the opponent by either states or rewards
+
+Current Value Iteration has a turn-dependent opponent handling.
+    - each valid state is considered
+    - current player is derived from the state
+    - value iteration subtracts opponent gains and adds own gains
+
+Next idea
+    - halve the valid states to where the player X is allowed to make move and never consider player Y
+    - e.g. all states where sum(x) == sum(y) are allowed, as long as the configuration is valid
+    - rewards will be kept the same, but most likely only the positive reward is needed
