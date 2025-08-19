@@ -11,3 +11,13 @@ Next idea
     - halve the valid states to where the player X is allowed to make move and never consider player Y
     - e.g. all states where sum(x) == sum(y) are allowed, as long as the configuration is valid
     - rewards will be kept the same, but most likely only the positive reward is needed
+
+RESULT:
+- the V[next_state] are never handled properly
+- next_state is never "move again" --> V[next_state] is either always zero or even worse undefined
+- with the default initialization of 0 we get a rather dumb agent
+- interestingly, the agent knows, that the final state is bad, but all the states "one step before disaster" have a value of zero --> randomly an action is taken
+
+
+Next idea:
+    - implement an actuan max(min) agent
