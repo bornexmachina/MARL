@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from io import StringIO
 from contextlib import redirect_stdout
-from tic_tac_toe import tic_tac_toe_value_iteration as ttt
+from tic_tac_toe import value_iteration as ttt
 
 
 class TestUtils(unittest.TestCase):
