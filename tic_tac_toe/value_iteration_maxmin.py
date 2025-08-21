@@ -162,6 +162,22 @@ class Player(PlayerBaseClass):
         self.V = {}
         self.policy = {}
 
+    def next_state(self, state, action, player_symbol):
+        board = _state_to_board(state).copy()
+        board[action] = player_symbol
+        return _board_to_state(board)
+    
+    def reward(self, state, player_symbol):
+        winner = _check_winner(_state_to_board(state))
+        if winner == player_symbol:
+            return 1
+        elif winner == PlayerSymbol.EMPTY:
+            return 0
+        elif winner is None:
+            return 0
+        else:
+            return -1
+
     def next_state_and_reward(self, state, action, player_symbol):
         board = _state_to_board(state).copy()
         board[action] = player_symbol
@@ -186,8 +202,60 @@ class Player(PlayerBaseClass):
         and in the fixed point T = V*
 
         Just to be clear, pi_1(s) is always an action --> best action in state s
+        Also once again, P(s' | ...) = 1 as we have deterministic transitions
         """
-        raise NotImplementedError
+        states = _generate_all_states()
+
+        actions_of_x = {s: _get_available_positions(s) for s in states}
+        self.V = {s: 0.0 for s in states}
+        self.policy_player_x = {}
+        self.policy_player_y = {}
+
+
+        while True:
+            delta = 0
+            for state in states:
+                max_value_x = {}
+
+                for action_of_x in actions_of_x[state]:
+                    # by taking action action_of_x from policy pi_x we arrive at state s'
+                    # in s' the opponent will have a new set of reachable sets and thus will take an action action_of_y from policy pi_y
+                    state_after_one_turn = self.next_state(state, action_of_x, PlayerSymbol.X)
+
+                    # the game might be over after action_of_x --> check for it
+                    if _check_winner(_state_to_board(state_after_one_turn)) is None:
+                        actions_of_y = _get_available_positions(state_after_one_turn)
+                        min_value_y = {}
+
+                        for action_of_y in actions_of_y:
+                            state_after_two_turns = self.next_state(state_after_one_turn, action_of_y, PlayerSymbol.Y)
+                            instantaneous_reward = self.reward(state_after_two_turns)
+                            
+                            current_value = instantaneous_reward + self.gamma * self.V.get(state_after_two_turns)
+                            
+                            min_value_y[action_of_y] = current_value
+
+                        max_value_x[action_of_x] = min(min_value_y.values())
+
+                    else:
+                        instantaneous_reward = self.reward(state_after_one_turn)
+                        current_value = instantaneous_reward + self.gamma * self.V.get(state_after_one_turn)
+                        max_value_x[action_of_x] = current_value
+                        min_value_y = {}
+
+                v_old = self.V[state]
+
+                if max_value_x:
+                    self.V[state] = max(max_value_x.values())
+                    # after we have run through all actions of x and all actions of y we find what the best policies are
+                    self.policy_player_x[state] = self.get_max_action(max_value_x)
+                    if min_value_y:
+                        self.policy_player_y[state] = self.get_min_action(min_value_y)
+
+                delta = max(delta, abs(v_old - self.V[state]))
+
+            if delta < theta:
+                break
 
     def choose_action(self, board):
         state = _board_to_state(board)
