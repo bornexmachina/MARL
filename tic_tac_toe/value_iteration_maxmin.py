@@ -258,22 +258,16 @@ class Player(PlayerBaseClass):
                 break
 
     def choose_action(self, board):
-        state = _board_to_state(board)
-
-        to_move = _to_move(_board_to_state(board))
-
-        if to_move != self.player_symbol:
-            return None
-    
-        return self.policy[state]
+        state = _board_to_state(board) 
+        return self.policy_player_x[state]
 
     def save_policy(self):
         with open(f'policy_{self.name}.pkl', 'wb') as fw:
-            pickle.dump(self.policy, fw)
+            pickle.dump(self.policy_player_x, fw)
 
     def load_policy(self, file):
         with open(file, 'rb') as fr:
-            self.policy = pickle.load(fr)
+            self.policy_player_x = pickle.load(fr)
 
 
 class HumanPlayer(PlayerBaseClass):
