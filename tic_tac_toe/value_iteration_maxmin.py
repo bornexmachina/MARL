@@ -90,6 +90,61 @@ def _state_to_board(state):
     return np.array(state).reshape(3, 3)
 
 
+def _get_max_action(dictionary):
+    """
+    Explicit assumption, we have 1 to 1 key-value relationship
+    """
+    flat_keys = np.array(list(dictionary.keys()))
+    tmp_vals = list(dictionary.values())
+    
+    # just to make sure that no value is a list itself
+    flat_vals = []
+
+    for element in tmp_vals:
+        if hasattr(element, '__iter__'):
+            for l in element:
+                flat_vals.append(l)
+        else:
+            flat_vals.append(element)
+
+    flat_vals = np.array(flat_vals)
+
+    assert len(flat_keys) == len(flat_vals)
+
+    max_value = max(flat_vals)
+    argmax_value = flat_keys[np.where(flat_vals == max_value)[0]]
+
+    return argmax_value
+
+
+def _get_min_action(dictionary):
+    """
+    Explicit assumption, we have 1 to 1 key-value relationship
+    """
+    flat_keys = np.array(list(dictionary.keys()))
+    tmp_vals = list(dictionary.values())
+    
+    # just to make sure that no value is a list itself
+    flat_vals = []
+
+    for element in tmp_vals:
+        if hasattr(element, '__iter__'):
+            for l in element:
+                flat_vals.append(l)
+        else:
+            flat_vals.append(element)
+
+    flat_vals = np.array(flat_vals)
+
+    assert len(flat_keys) == len(flat_vals)
+
+    min_value = min(flat_vals)
+    argmin_value = flat_keys[np.where(flat_vals == min_value)[0]]
+
+    return argmin_value
+
+
+
 def _find_max_and_argmax_in_dict(dictionary):
     """
     Explicit assumption, we have 1 to 1 key-value relationship
@@ -229,17 +284,17 @@ class Player(PlayerBaseClass):
 
                         for action_of_y in actions_of_y:
                             state_after_two_turns = self.next_state(state_after_one_turn, action_of_y, PlayerSymbol.Y)
-                            instantaneous_reward = self.reward(state_after_two_turns)
+                            instantaneous_reward = self.reward(state_after_two_turns, player_symbol=PlayerSymbol.Y)
                             
-                            current_value = instantaneous_reward + self.gamma * self.V.get(state_after_two_turns)
+                            current_value = instantaneous_reward + self.gamma * self.V.get(state_after_two_turns, 0.0)
                             
                             min_value_y[action_of_y] = current_value
 
                         max_value_x[action_of_x] = min(min_value_y.values())
 
                     else:
-                        instantaneous_reward = self.reward(state_after_one_turn)
-                        current_value = instantaneous_reward + self.gamma * self.V.get(state_after_one_turn)
+                        instantaneous_reward = self.reward(state_after_one_turn, player_symbol=PlayerSymbol.X)
+                        current_value = instantaneous_reward + self.gamma * self.V.get(state_after_one_turn, 0.0)
                         max_value_x[action_of_x] = current_value
                         min_value_y = {}
 
@@ -248,9 +303,9 @@ class Player(PlayerBaseClass):
                 if max_value_x:
                     self.V[state] = max(max_value_x.values())
                     # after we have run through all actions of x and all actions of y we find what the best policies are
-                    self.policy_player_x[state] = self.get_max_action(max_value_x)
+                    self.policy_player_x[state] = tuple(random.choice(_get_max_action(max_value_x)))
                     if min_value_y:
-                        self.policy_player_y[state] = self.get_min_action(min_value_y)
+                        self.policy_player_y[state] = tuple(random.choice(_get_min_action(min_value_y)))
 
                 delta = max(delta, abs(v_old - self.V[state]))
 
