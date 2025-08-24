@@ -270,6 +270,15 @@ class Player(PlayerBaseClass):
         while True:
             delta = 0
             for state in states:
+                # if we already have a terminal state, we do not make any actions
+                winner = _check_winner(_state_to_board(state))
+
+                if winner is not None:
+                    # in a terminal state there is no s' as we DO NOT transition
+                    # by convention we assume V[s'] is then 0 --> gamma * V[s'] = 0
+                    self.V[state] = self.reward(state, PlayerSymbol.X)
+                    continue
+                
                 max_value_x = {}
 
                 for action_of_x in actions_of_x[state]:
@@ -278,34 +287,31 @@ class Player(PlayerBaseClass):
                     state_after_one_turn = self.next_state(state, action_of_x, PlayerSymbol.X)
 
                     # the game might be over after action_of_x --> check for it
-                    if _check_winner(_state_to_board(state_after_one_turn)) is None:
+                    if _check_winner(_state_to_board(state_after_one_turn)) is not None:
+                        value_x = self.reward(state_after_one_turn, PlayerSymbol.X)
+                    # game is still going on
+                    else:
                         actions_of_y = _get_available_positions(state_after_one_turn)
                         min_value_y = {}
 
                         for action_of_y in actions_of_y:
                             state_after_two_turns = self.next_state(state_after_one_turn, action_of_y, PlayerSymbol.Y)
-                            instantaneous_reward = self.reward(state_after_two_turns, player_symbol=PlayerSymbol.Y)
                             
-                            current_value = instantaneous_reward + self.gamma * self.V.get(state_after_two_turns, 0.0)
+                            if _check_winner(_state_to_board(state_after_two_turns)) is not None:
+                                value_y = self.reward(state_after_one_turn, PlayerSymbol.Y)
+                            else:
+                                value_y = self.reward(state_after_one_turn, PlayerSymbol.Y) + self.gamma * self.V.get(state_after_two_turns, 0.0)
+
+                            min_value_y[action_of_y] = value_y
                             
-                            min_value_y[action_of_y] = current_value
+                        value_x = min(min_value_y.values())
+                        self.policy_player_y[state_after_one_turn] = value_y
 
-                        max_value_x[action_of_x] = min(min_value_y.values())
-
-                    else:
-                        instantaneous_reward = self.reward(state_after_one_turn, player_symbol=PlayerSymbol.X)
-                        current_value = instantaneous_reward + self.gamma * self.V.get(state_after_one_turn, 0.0)
-                        max_value_x[action_of_x] = current_value
-                        min_value_y = {}
+                    max_value_x[action_of_x] = value_x
 
                 v_old = self.V[state]
-
-                if max_value_x:
-                    self.V[state] = max(max_value_x.values())
-                    # after we have run through all actions of x and all actions of y we find what the best policies are
-                    self.policy_player_x[state] = tuple(random.choice(_get_max_action(max_value_x)))
-                    if min_value_y:
-                        self.policy_player_y[state] = tuple(random.choice(_get_min_action(min_value_y)))
+                self.V[state] = max(max_value_x.values())
+                self.policy_player_x[state] = tuple(random.choice(_get_max_action(max_value_x)))
 
                 delta = max(delta, abs(v_old - self.V[state]))
 
