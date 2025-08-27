@@ -1,6 +1,4 @@
 import numpy as np
-import random
-import pickle
 from enum import IntEnum
 from itertools import product
 
@@ -10,7 +8,7 @@ class PlayerSymbol(IntEnum):
     Y = -1
 
 # Helper functions -> refactor from Board and Player
-def _print_board(board):
+def print_board(board):
     symbol_map = {PlayerSymbol.EMPTY: ' ',
                     PlayerSymbol.X: 'X',
                     PlayerSymbol.Y: 'O'}
@@ -24,7 +22,7 @@ def _print_board(board):
     print("***", flush=True)
 
 
-def _check_winner(board):
+def check_winner(board):
     for player_symbol in [PlayerSymbol.X, PlayerSymbol.Y]:
         _rows = np.any(board.sum(axis=1) == player_symbol * 3)
         _cols = np.any(board.sum(axis=0) == player_symbol * 3)
@@ -40,7 +38,7 @@ def _check_winner(board):
     return None
 
 
-def _get_winner_name(winner):
+def get_winner_name(winner):
     if winner == PlayerSymbol.X:
         return "X"
     elif winner == PlayerSymbol.Y:
@@ -49,11 +47,11 @@ def _get_winner_name(winner):
         return "Draw"
 
 
-def _get_available_positions(state):
-        return list(zip(*np.where(_state_to_board(state) == PlayerSymbol.EMPTY)))
+def get_available_positions(state):
+        return list(zip(*np.where(state_to_board(state) == PlayerSymbol.EMPTY)))
 
 
-def _is_valid_board(board):
+def is_valid_board(board):
     """
     Hard wired who goes first -> we might come up with something better at some point
     valid states assuming X starts first:
@@ -74,27 +72,27 @@ def _is_valid_board(board):
 
 
 def _is_full(state):
-    return len(_get_available_positions(state)) == 0
+    return len(get_available_positions(state)) == 0
 
 
-def _generate_all_states():
+def generate_all_states():
     all_states = []
     for state in product([PlayerSymbol.EMPTY, PlayerSymbol.X, PlayerSymbol.Y], repeat=9):
-        board = _state_to_board(state)
-        if _is_valid_board(board):
+        board = state_to_board(state)
+        if is_valid_board(board):
             all_states.append(state)
     return all_states
 
 
-def _board_to_state(board):
+def board_to_state(board):
     return tuple(board.flatten())
 
 
-def _state_to_board(state):
+def state_to_board(state):
     return np.array(state).reshape(3, 3)
 
 
-def _get_max_action(dictionary):
+def get_max_action(dictionary):
     """
     Explicit assumption, we have 1 to 1 key-value relationship
     """
@@ -121,7 +119,7 @@ def _get_max_action(dictionary):
     return argmax_value
 
 
-def _get_min_action(dictionary):
+def get_min_action(dictionary):
     """
     Explicit assumption, we have 1 to 1 key-value relationship
     """
@@ -149,7 +147,7 @@ def _get_min_action(dictionary):
 
 
 
-def _find_max_and_argmax_in_dict(dictionary):
+def find_max_and_argmax_in_dict(dictionary):
     """
     Explicit assumption, we have 1 to 1 key-value relationship
     """
@@ -176,12 +174,12 @@ def _find_max_and_argmax_in_dict(dictionary):
     return max_value, argmax_value
 
 
-def _opponent(player_symbol):
+def opponent(player_symbol):
     return PlayerSymbol.Y if player_symbol == PlayerSymbol.X else PlayerSymbol.X
 
 
-def _to_move(state):
-    board = _state_to_board(state)
+def to_move(state):
+    board = state_to_board(state)
     x = np.sum(board == PlayerSymbol.X)
     y = np.sum(board == PlayerSymbol.Y)
     return PlayerSymbol.X if x == y else PlayerSymbol.Y

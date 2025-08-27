@@ -1,138 +1,7 @@
 import numpy as np
 import random
 import pickle
-from enum import IntEnum
-from itertools import product
-
-
-# Helper functions -> refactor from Board and Player
-def _print_board(board):
-    symbol_map = {PlayerSymbol.EMPTY: ' ',
-                    PlayerSymbol.X: 'X',
-                    PlayerSymbol.Y: 'O'}
-    
-    for i in range(3):
-        row = ' | '.join(symbol_map[PlayerSymbol(cell)] for cell in board[i])
-        print(row, flush=True)
-        if i < 2:
-            print('--+---+--', flush=True)
-
-    print("***", flush=True)
-
-
-def _check_winner(board):
-    for player_symbol in [PlayerSymbol.X, PlayerSymbol.Y]:
-        _rows = np.any(board.sum(axis=1) == player_symbol * 3)
-        _cols = np.any(board.sum(axis=0) == player_symbol * 3)
-        _diag = np.trace(board) == player_symbol * 3
-        _antidiag = np.trace(np.fliplr(board)) == player_symbol * 3
-
-        if _rows or _cols or _diag or _antidiag:
-            return player_symbol
-        
-    if not (board == PlayerSymbol.EMPTY).any():
-        return PlayerSymbol.EMPTY
-    
-    return None
-
-
-def _get_winner_name(winner):
-    if winner == PlayerSymbol.X:
-        return "X"
-    elif winner == PlayerSymbol.Y:
-        return "O"
-    else:
-        return "Draw"
-
-
-def _get_available_positions(state):
-        return list(zip(*np.where(_state_to_board(state) == PlayerSymbol.EMPTY)))
-
-
-def _is_valid_board(board):
-    """
-    Hard wired who goes first -> we might come up with something better at some point
-    valid states assuming X starts first:
-        - empty
-        - same number of X and Y
-        - 1 X more than Y --> X has won the game
-        - only X, Y and EMPTY symbols on the board
-    """
-    assert board.shape == (3, 3)
-    x_count = np.sum(board == PlayerSymbol.X)
-    y_count = np.sum(board == PlayerSymbol.Y)
-    empty_count = np.sum(board == PlayerSymbol.EMPTY)
-
-    # assertion is better -> if we add weird symbols, than the whole game is corrupt
-    assert x_count + y_count + empty_count == 9
-
-    return (x_count == y_count or x_count - y_count == 1)
-
-
-def _is_full(state):
-    return len(_get_available_positions(state)) == 0
-
-
-def _generate_all_states():
-    all_states = []
-    for state in product([PlayerSymbol.EMPTY, PlayerSymbol.X, PlayerSymbol.Y], repeat=9):
-        board = _state_to_board(state)
-        if _is_valid_board(board):
-            all_states.append(state)
-    return all_states
-
-
-def _board_to_state(board):
-    return tuple(board.flatten())
-
-
-def _state_to_board(state):
-    return np.array(state).reshape(3, 3)
-
-
-def _find_max_and_argmax_in_dict(dictionary):
-    """
-    Explicit assumption, we have 1 to 1 key-value relationship
-    """
-    flat_keys = np.array(list(dictionary.keys()))
-    tmp_vals = list(dictionary.values())
-    
-    # just to make sure that no value is a list itself
-    flat_vals = []
-
-    for element in tmp_vals:
-        if hasattr(element, '__iter__'):
-            for l in element:
-                flat_vals.append(l)
-        else:
-            flat_vals.append(element)
-
-    flat_vals = np.array(flat_vals)
-
-    assert len(flat_keys) == len(flat_vals)
-
-    max_value = max(flat_vals)
-    argmax_value = flat_keys[np.where(flat_vals == max_value)[0]]
-
-    return max_value, argmax_value
-
-
-def _opponent(player_symbol):
-    return PlayerSymbol.Y if player_symbol == PlayerSymbol.X else PlayerSymbol.X
-
-
-def _to_move(state):
-    board = _state_to_board(state)
-    x = np.sum(board == PlayerSymbol.X)
-    y = np.sum(board == PlayerSymbol.Y)
-    return PlayerSymbol.X if x == y else PlayerSymbol.Y
-
-
-class PlayerSymbol(IntEnum):
-    EMPTY = 0
-    X = 1
-    Y = -1
-
+import utils
 
 class PlayerBaseClass:
     """
@@ -163,17 +32,17 @@ class Player(PlayerBaseClass):
         self.policy = {}
 
     def next_state_and_reward(self, state, action, player_symbol):
-        board = _state_to_board(state).copy()
+        board = utils.state_to_board(state).copy()
         board[action] = player_symbol
-        winner = _check_winner(board)
+        winner = utils.check_winner(board)
         if winner == player_symbol:
-            return _board_to_state(board), 1
-        elif winner == PlayerSymbol.EMPTY:
-            return _board_to_state(board), 0
+            return utils.board_to_state(board), 1
+        elif winner == utils.PlayerSymbol.EMPTY:
+            return utils.board_to_state(board), 0
         elif winner is None:
-            return _board_to_state(board), 0
+            return utils.board_to_state(board), 0
         else:
-            return _board_to_state(board), -1
+            return utils.board_to_state(board), -1
 
     def train_value_iteration(self, theta=1e-6):
         """
@@ -192,9 +61,9 @@ class Player(PlayerBaseClass):
         for direct implementation we use the algorithm as outlined in
         https://gibberblot.github.io/rl-notes/single-agent/value-iteration.html
         """
-        states = _generate_all_states()
+        states = utils.generate_all_states()
 
-        actions_dict = {s: _get_available_positions(s) for s in states}
+        actions_dict = {s: utils.get_available_positions(s) for s in states}
         self.V = {s: 0.0 for s in states}
         self.policy = {s: None for s in states}
 
@@ -203,7 +72,7 @@ class Player(PlayerBaseClass):
         while True:
             delta = 0
             for s in states:
-                to_move = _to_move(s)
+                to_move = utils.to_move(s)
 
                 for a in actions_dict[s]:
                     if to_move == self.player_symbol:
@@ -211,18 +80,18 @@ class Player(PlayerBaseClass):
                         # the sum over s' in S is thus exactly one term
                         s_, reward = self.next_state_and_reward(s, a, self.player_symbol)
                     else:
-                        s_, reward_opp = self.next_state_and_reward(s, a, _opponent(self.player_symbol))
+                        s_, reward_opp = self.next_state_and_reward(s, a, utils.opponent(self.player_symbol))
                         reward = - reward_opp
 
-                    if _is_valid_board(_state_to_board(s_)):
-                        gamma_V = 0.0 if _check_winner(_state_to_board(s_)) is not None else self.gamma * self.V[s_]
+                    if utils.is_valid_board(utils.state_to_board(s_)):
+                        gamma_V = 0.0 if utils.check_winner(utils.state_to_board(s_)) is not None else self.gamma * self.V[s_]
                         Q[s][a] = reward + gamma_V
 
                 if Q[s]:
                     if to_move == self.player_symbol:
                         # after the iteration we have to update delta as
                         # delta <-- max(delta, | max_{a in A} Q(s, a) - V(s) |)
-                        max_a, argmax_a = _find_max_and_argmax_in_dict(Q[s])
+                        max_a, argmax_a = utils.find_max_and_argmax_in_dict(Q[s])
                         delta = max(delta, np.abs(max_a - self.V[s]))
 
                         self.V[s] = max_a
@@ -237,9 +106,9 @@ class Player(PlayerBaseClass):
                 break
 
     def choose_action(self, board):
-        state = _board_to_state(board)
+        state = utils.board_to_state(board)
 
-        to_move = _to_move(_board_to_state(board))
+        to_move = utils.to_move(utils.board_to_state(board))
 
         if to_move != self.player_symbol:
             return None
@@ -257,7 +126,7 @@ class Player(PlayerBaseClass):
 
 class HumanPlayer(PlayerBaseClass):
     def choose_action(self, board):
-        positions = _get_available_positions(_board_to_state(board))
+        positions = utils.get_available_positions(utils.board_to_state(board))
         while True:
             try:
                 row = int(input("Input your action row (0-2):"))
@@ -278,44 +147,44 @@ class Board:
         self.has_ended = False
         self.player_1 = player_1
         self.player_2 = player_2
-        self.current_player = PlayerSymbol.X
+        self.current_player = utils.PlayerSymbol.X
     
     def switch_players(self):
-        self.current_player = PlayerSymbol.X if self.current_player == PlayerSymbol.Y else PlayerSymbol.Y
+        self.current_player = utils.PlayerSymbol.X if self.current_player == utils.PlayerSymbol.Y else utils.PlayerSymbol.Y
     
     def update_state(self, action):
         if action is None:
             raise ValueError("Action is not allowed!")
-        if action in _get_available_positions(self.board):
+        if action in utils.get_available_positions(self.board):
             self.board[action] = self.current_player
-            winner = _check_winner(self.board)
+            winner = utils.check_winner(self.board)
 
             if winner is not None:
                 self.has_ended = True
-                _print_board(self.board)
+                utils.print_board(self.board)
 
-                if winner == PlayerSymbol.EMPTY:
+                if winner == utils.PlayerSymbol.EMPTY:
                     print("Draw!")
                 else:
-                    print(f"Winner is Player {_get_winner_name(winner)}!")
+                    print(f"Winner is Player {utils.get_winner_name(winner)}!")
 
             self.switch_players()
 
     def play(self):
         while not self.has_ended:
-            player = self.player_1 if self.current_player == PlayerSymbol.X else self.player_2
+            player = self.player_1 if self.current_player == utils.PlayerSymbol.X else self.player_2
             action = player.choose_action(self.board)
             self.update_state(action)
-            _print_board(self.board)
+            utils.print_board(self.board)
 
 
 def main():
     # Training AI players
-    player1 = Player("AI Player 1", PlayerSymbol.X)
+    player1 = Player("AI Player 1", utils.PlayerSymbol.X)
     player1.train_value_iteration()
     
     # Play against a human
-    human_player = HumanPlayer("Human", PlayerSymbol.Y)
+    human_player = HumanPlayer("Human", utils.PlayerSymbol.Y)
     board = Board(player1, human_player)
     board.play()
 
