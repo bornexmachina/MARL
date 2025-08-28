@@ -1,4 +1,5 @@
-from value_iteration_maxmin import PlayerSymbol
+import numpy as np
+import utils
 
 
 class Board:
@@ -7,7 +8,7 @@ class Board:
         self.has_ended = False
         self.player_1 = player_1
         self.player_2 = player_2
-        self.current_player = PlayerSymbol.X
+        self.current_player = utils.PlayerSymbol.X
     
     def switch_players(self):
         self.current_player = PlayerSymbol.X if self.current_player == PlayerSymbol.Y else PlayerSymbol.Y
