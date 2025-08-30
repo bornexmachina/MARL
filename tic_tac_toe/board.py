@@ -11,29 +11,29 @@ class Board:
         self.current_player = utils.PlayerSymbol.X
     
     def switch_players(self):
-        self.current_player = PlayerSymbol.X if self.current_player == PlayerSymbol.Y else PlayerSymbol.Y
+        self.current_player = utils.PlayerSymbol.X if self.current_player == utils.PlayerSymbol.Y else utils.PlayerSymbol.Y
     
     def update_state(self, action):
         if action is None:
             raise ValueError("Action is not allowed!")
-        if action in _get_available_positions(self.board):
+        if action in utils.get_available_positions(self.board):
             self.board[action] = self.current_player
-            winner = _check_winner(self.board)
+            winner = utils.check_winner(utils.board_to_state(self.board))
 
             if winner is not None:
                 self.has_ended = True
-                _print_board(self.board)
+                utils.print_board(self.board)
 
-                if winner == PlayerSymbol.EMPTY:
+                if winner == utils.PlayerSymbol.EMPTY:
                     print("Draw!")
                 else:
-                    print(f"Winner is Player {_get_winner_name(winner)}!")
+                    print(f"Winner is Player {utils.get_winner_name(winner)}!")
 
             self.switch_players()
 
     def play(self):
         while not self.has_ended:
-            player = self.player_1 if self.current_player == PlayerSymbol.X else self.player_2
+            player = self.player_1 if self.current_player == utils.PlayerSymbol.X else self.player_2
             action = player.choose_action(self.board)
             self.update_state(action)
-            _print_board(self.board)
+            utils.print_board(self.board)

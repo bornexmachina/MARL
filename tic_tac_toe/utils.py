@@ -22,7 +22,9 @@ def print_board(board):
     print("***", flush=True)
 
 
-def check_winner(board):
+def check_winner(state):
+    board = state_to_board(state)
+
     for player_symbol in [PlayerSymbol.X, PlayerSymbol.Y]:
         _rows = np.any(board.sum(axis=1) == player_symbol * 3)
         _cols = np.any(board.sum(axis=0) == player_symbol * 3)
