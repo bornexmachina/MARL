@@ -73,7 +73,7 @@ def is_valid_board(board):
     return (x_count == y_count or x_count - y_count == 1)
 
 
-def _is_full(state):
+def has_ended(state):
     return len(get_available_positions(state)) == 0
 
 
