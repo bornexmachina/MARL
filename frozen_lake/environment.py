@@ -44,3 +44,6 @@ class Environment:
         plt.xticks([])
         plt.yticks([])
         plt.show()
+
+    def visualize_trajectory(self, trajectory):
+        pass
