@@ -35,15 +35,15 @@ class Environment:
                               [LakeState.FROZEN, LakeState.HOLE, LakeState.FROZEN, LakeState.HOLE],
                               [LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.HOLE],
                               [LakeState.HOLE, LakeState.FROZEN, LakeState.FROZEN, LakeState.GOAL]])
+        self.position = (0, 0)
         
     def visualize_initial_env(self):
-        data = np.array(self.env)
         custom_colors = ["white", "lightsteelblue", "darkslateblue", "gold"]
         cmap = ListedColormap(custom_colors)
 
         fig, ax = plt.subplots(figsize=(4, 4))
         
-        ax.imshow(data, cmap=cmap, origin="upper", interpolation="nearest", extent=(0, 4, 0, 4))
+        ax.imshow(self.lake, cmap=cmap, origin="upper", interpolation="nearest", extent=(0, 4, 0, 4))
         ax.grid(color="lightgrey", linewidth=0.5)
         ax.set_xticks(np.arange(0, 5, 1))
         ax.set_yticks(np.arange(0, 5, 1))
@@ -67,3 +67,15 @@ class Environment:
             ax.scatter(x, y, color=color, s=50, marker="D")
 
         plt.show()
+
+    def turn_left(self):
+        pass
+
+    def turn_right(self):
+        pass
+
+    def turn_up(self):
+        pass
+
+    def turn_down(self):
+        pass
