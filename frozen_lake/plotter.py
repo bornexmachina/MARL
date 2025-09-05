@@ -39,3 +39,11 @@ def visualize_trajectory(lake: np.ndarray, trajectory: list[tuple[int, int]]) ->
         ax.scatter(x, y, color=color, s=50, marker="D")
 
     plt.show()
+
+
+def visualize_V(lake: np.ndarray, V: dict[int, float]):
+    pass
+
+
+def visualize_Q(lake: np.ndarray, Q: dict[int, dict[int, float]]):
+    pass
