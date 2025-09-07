@@ -42,11 +42,24 @@ def visualize_trajectory(lake: np.ndarray, trajectory: list[tuple[int, int]]) ->
     plt.show()
 
 
-def visualize_V(lake: np.ndarray, V: dict[int, float]):
-    pass
+def visualize_V(lake: np.ndarray, V: dict[tuple[int, int], float]):
+    ax = visualize_lake(lake)
+    offset = 0.5
+    max_idx = len(lake) - 1
+
+    for (i, j), value in V.items():
+        color = "white"
+        if (i, j) == (0, 0) or (i, j) == (max_idx, max_idx):
+            color = "black"
+        x = j + offset
+        y = max_idx - i + offset
+
+        ax.text(x, y, f"{value:.2f}", ha="center", va="center", color=color, fontsize=10)
+
+    plt.show()
 
 
-def visualize_Q(lake: np.ndarray, Q: dict[int, dict[int, float]]):
+def visualize_Q(lake: np.ndarray, Q: dict[tuple[int, int], dict[int, float]]):
     """
     Q is of form {state: {left: 0.x, right: 0.x, up: 0.x, down: 0.x}}
     --> in best case we can plot a 4x4 cell in each large cell
