@@ -1,5 +1,5 @@
 import numpy as np
-from environment import LakeState
+from enums import LakeState
 
 
 LAKE_SMALL = np.array([[LakeState.SAFE, LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN],

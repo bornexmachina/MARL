@@ -2,13 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colors import ListedColormap
+from enums import Actions
 
 
 def visualize_lake(lake) -> Axes:
     """
     plot the frozen lake
     """
-    custom_colors = ["white", "lightsteelblue", "darkslateblue", "gold"]
+    custom_colors = ["white", "cadetblue", "darkslategray", "gold"]
     cmap = ListedColormap(custom_colors)
 
     _, ax = plt.subplots(figsize=(6, 6))
@@ -26,7 +27,7 @@ def visualize_trajectory(lake: np.ndarray, trajectory: list[tuple[int, int]]) ->
     trajectory is a list of tuples. each tuple is x,y coordinate of the lake
     --> we need a transformation from our indexing of the array to actual plot
     """
-    ax = visualize_lake()
+    ax = visualize_lake(lake)
     offset = 0.5
     max_idx = len(lake) - 1
 
@@ -77,13 +78,13 @@ def visualize_Q(lake: np.ndarray, Q: dict[tuple[int, int], dict[int, float]]):
         y = max_idx - i + offset
 
         # Write text in 4 positions
-        ax.text(x - 0.25, y, f"{directions['left']:.2f}",
+        ax.text(x - 0.25, y, f"{directions[Actions.LEFT]:.2f}",
                 ha="right", va="center", color=color, fontsize=8)
-        ax.text(x + 0.25, y, f"{directions['right']:.2f}",
+        ax.text(x + 0.25, y, f"{directions[Actions.RIGHT]:.2f}",
                 ha="left", va="center", color=color, fontsize=8)
-        ax.text(x, y - 0.25, f"{directions['up']:.2f}",
+        ax.text(x, y - 0.25, f"{directions[Actions.UP]:.2f}",
                 ha="center", va="bottom", color=color, fontsize=8)
-        ax.text(x, y + 0.25, f"{directions['down']:.2f}",
+        ax.text(x, y + 0.25, f"{directions[Actions.DOWN]:.2f}",
                 ha="center", va="top", color=color, fontsize=8)
         
     plt.show()

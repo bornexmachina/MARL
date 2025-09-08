@@ -1,28 +1,7 @@
-from enum import IntEnum, auto
 import random
 import numpy as np
 from itertools import product
-
-
-class Actions(IntEnum):
-    LEFT = auto()
-    RIGHT = auto()
-    DOWN = auto()
-    UP = auto()
-
-    @classmethod
-    def sample(cls):
-        return random.choice([cls.LEFT, cls.RIGHT, cls.DOWN, cls.UP])
-    
-    def get_actions(self):
-        return[Actions.LEFT, Actions.RIGHT, Actions.UP, Actions.DOWN]
-    
-
-class LakeState(IntEnum):
-    SAFE = auto()
-    FROZEN = auto()
-    HOLE = auto()
-    GOAL = auto()
+from enums import Actions, LakeState
 
 
 class Environment:
@@ -67,14 +46,14 @@ class Environment:
 
     def take_action(self, action: int, position: tuple[int, int]) -> tuple[int, int]:
         if action == Actions.LEFT:
-            self.turn_left(position)
+            return self.turn_left(position)
         if action == Actions.RIGHT:
-            self.turn_right(position)
+            return self.turn_right(position)
         if action == Actions.UP:
-            self.turn_up(position)
+            return self.turn_up(position)
         if action == Actions.DOWN:
-            self.turn_down(position)
-        raise ValueError("--- illegal action has been provided ---")
+            return self.turn_down(position)
+        raise ValueError(f"--- illegal action has been provided: {action} ---")
     
     def get_instantaneous_reward(self, position: tuple[int, int]) -> int:
         current_state = self.lake[position]
