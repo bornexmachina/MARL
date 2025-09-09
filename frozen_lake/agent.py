@@ -36,33 +36,38 @@ class Agent:
         self.initialize_policy()
         delta = float('inf')
 
-        all_actions = Actions.get_actions()  # compute once if actions are global
+        all_actions = Actions.get_actions()
 
         while delta > self.theta:
             delta = 0
+            V_new = self.V.copy()
 
             for position in self.V.keys():
-                # if the state is terminal there are no actions anymore
-                # --> just give the final reward
+                old_v = self.V[position]  # Store the old value
+
                 if self.env.is_terminal(position):
-                    self.V[position] = self.env.get_instantaneous_reward(position)
+                    new_v = self.env.get_instantaneous_reward(position)
                 else:
                     max_action_value = float('-inf')
                     best_action = None
-
+                    
                     for action in all_actions:
                         new_position = self.env.take_action(action, position)
-                        new_value = self.env.get_instantaneous_reward(new_position) + \
-                                    self.gamma * self.V[new_position]
+                        new_value_from_action = 0 + self.gamma * self.V[new_position]
 
-                        if new_value > max_action_value:
-                            max_action_value = new_value
+                        if new_value_from_action > max_action_value:
+                            max_action_value = new_value_from_action
                             best_action = action
+                    
+                    new_v = max_action_value
+                    self.policy[position] = best_action
 
-                    delta = max(delta, abs(self.V[position] - max_action_value))
-                    self.V[position] = max_action_value
-                self.policy[position] = best_action
-
+                # Update the new value and calculate delta here
+                V_new[position] = new_v
+                delta = max(delta, abs(old_v - new_v))
+            
+            self.V = V_new
+        
     def action_value_iteration(self):
         self.initialize_V()
         self.initialize_Q()
@@ -79,7 +84,7 @@ class Agent:
                 else:
                     for action in self.Q[position].keys():
                         new_position = self.env.take_action(action, position)
-                        self.Q[position][action] = self.env.get_instantaneous_reward(new_position) + self.gamma * self.V[new_position]
+                        self.Q[position][action] = 0 + self.gamma * self.V[new_position]
                 delta = max(delta, max(self.Q[position].values()) - self.V[position])
                 self.V[position] = max(self.Q[position].values())
                 self.policy[position] = max(self.Q[position], key=self.Q[position].get)
