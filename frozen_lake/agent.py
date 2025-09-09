@@ -4,7 +4,7 @@ import constants as c
 
 
 class Agent:
-    def __init__(self, name="AI_Agent", gamma=0.9, theta=1E-12):
+    def __init__(self, name="AI_Agent", gamma=0.9, theta=1E-6):
         self.name = name
         self.gamma = gamma
         self.theta = theta
@@ -70,6 +70,7 @@ class Agent:
         delta = float('inf')
 
         while delta > self.theta:
+            delta = 0
             for position in self.Q.keys():
                 if self.env.is_terminal(position):
                     reward = self.env.get_instantaneous_reward(position)
@@ -80,4 +81,5 @@ class Agent:
                         new_position = self.env.take_action(action, position)
                         self.Q[position][action] = self.env.get_instantaneous_reward(new_position) + self.gamma * self.V[new_position]
                 delta = max(delta, max(self.Q[position].values()) - self.V[position])
+                self.V[position] = max(self.Q[position].values())
                 self.policy[position] = max(self.Q[position], key=self.Q[position].get)

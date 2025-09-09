@@ -82,9 +82,9 @@ def visualize_Q(lake: np.ndarray, Q: dict[tuple[int, int], dict[int, float]]):
                 ha="right", va="center", color=color, fontsize=8)
         ax.text(x + 0.25, y, f"{directions[Actions.RIGHT]:.2f}",
                 ha="left", va="center", color=color, fontsize=8)
-        ax.text(x, y - 0.25, f"{directions[Actions.UP]:.2f}",
+        ax.text(x, y - 0.25, f"{directions[Actions.DOWN]:.2f}",
                 ha="center", va="bottom", color=color, fontsize=8)
-        ax.text(x, y + 0.25, f"{directions[Actions.DOWN]:.2f}",
+        ax.text(x, y + 0.25, f"{directions[Actions.UP]:.2f}",
                 ha="center", va="top", color=color, fontsize=8)
         
     plt.show()
