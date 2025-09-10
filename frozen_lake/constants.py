@@ -8,6 +8,14 @@ LAKE_SMALL = np.array([[LakeState.SAFE, LakeState.FROZEN, LakeState.FROZEN, Lake
                        [LakeState.HOLE, LakeState.FROZEN, LakeState.FROZEN, LakeState.GOAL]])
 
 
+LAKE_MID = np.array([[LakeState.SAFE, LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.HOLE, LakeState.FROZEN, LakeState.HOLE],
+                     [LakeState.FROZEN, LakeState.HOLE, LakeState.FROZEN, LakeState.HOLE, LakeState.FROZEN, LakeState.HOLE, LakeState.HOLE],
+                     [LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.HOLE, LakeState.HOLE, LakeState.FROZEN, LakeState.FROZEN],
+                     [LakeState.FROZEN, LakeState.HOLE, LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN],
+                     [LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.HOLE, LakeState.HOLE, LakeState.FROZEN, LakeState.FROZEN],
+                     [LakeState.HOLE, LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.FROZEN, LakeState.GOAL]])
+
+
 REWARD_MAP = {LakeState.SAFE: 0,
               LakeState.FROZEN: 0,
               LakeState.HOLE: -1,

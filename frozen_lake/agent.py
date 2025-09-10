@@ -4,11 +4,11 @@ import constants as c
 
 
 class Agent:
-    def __init__(self, name="AI_Agent", gamma=0.9, theta=1E-6):
+    def __init__(self, name="AI_Agent", gamma=0.9, theta=1E-6, env=Environment(c.LAKE_SMALL, c.REWARD_MAP)):
         self.name = name
         self.gamma = gamma
         self.theta = theta
-        self.env = Environment(c.LAKE_SMALL, c.REWARD_MAP)
+        self.env = env
 
     def initialize_V(self):
         all_states = self.env.all_states()

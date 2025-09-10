@@ -16,8 +16,8 @@ def visualize_lake(lake) -> Axes:
     
     ax.imshow(lake, cmap=cmap, origin="upper", interpolation="nearest", extent=(0, lake.shape[1], 0, lake.shape[0]))
     ax.grid(color="lightgrey", linewidth=0.5)
-    ax.set_xticks(np.arange(0, 5, 1))
-    ax.set_yticks(np.arange(0, 5, 1))
+    ax.set_xticks(np.arange(0, lake.shape[1] + 1, 1))
+    ax.set_yticks(np.arange(0, lake.shape[0] + 1, 1))
     
     return ax
 
@@ -46,11 +46,12 @@ def visualize_trajectory(lake: np.ndarray, trajectory: list[tuple[int, int]]) ->
 def visualize_V(lake: np.ndarray, V: dict[tuple[int, int], float]):
     ax = visualize_lake(lake)
     offset = 0.5
-    max_idx = len(lake) - 1
+    max_idx = lake.shape[0] - 1
+    max_idy = lake.shape[1] - 1
 
     for (i, j), value in V.items():
         color = "white"
-        if (i, j) == (0, 0) or (i, j) == (max_idx, max_idx):
+        if (i, j) == (0, 0) or (i, j) == (max_idx, max_idy):
             color = "black"
         x = j + offset
         y = max_idx - i + offset
@@ -67,11 +68,12 @@ def visualize_Q(lake: np.ndarray, Q: dict[tuple[int, int], dict[int, float]]):
     """
     ax = visualize_lake(lake)
     offset = 0.5
-    max_idx = len(lake) - 1
+    max_idx = lake.shape[0] - 1
+    max_idy = lake.shape[1] - 1
 
     for (i, j), directions in Q.items():
         color = "white"
-        if (i, j) == (0, 0) or (i, j) == (max_idx, max_idx):
+        if (i, j) == (0, 0) or (i, j) == (max_idx, max_idy):
             color = "black"
         # Position is (col=j, row=i) because imshow uses (row, col)
         x = j + offset
