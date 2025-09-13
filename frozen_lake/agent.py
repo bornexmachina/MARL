@@ -100,34 +100,30 @@ class Agent:
                 delta = max(delta, abs(old_v - new_v))
                 
 
-    def epsilon_greedy_action_value_iteration(self, eps=0.1, alpha=0.1) -> None:
+    def epsilon_greedy_action_value_iteration(self, init_position=(0,0), eps=0.1, alpha=0.1, num_episodes=100_000) -> None:
         self.initialize_Q()
         self.initialize_policy()
-        delta = float('inf')
-
-        while delta > self.theta:
-            delta = 0
-            for position in self.Q.keys():
-                current_q = max(self.Q[position].values())
-                # in terminal state there are no actions to perform
-                # just collect the reward
-                if self.env.is_terminal(position):
-                    new_q = self.env.get_instantaneous_reward(position)
-                    for action in self.Q[position].keys():
-                        self.Q[position][action] = None
-                        self.policy[position] = None
+        
+        for i in range(num_episodes):
+            position = init_position
+            while not self.env.is_terminal(position):
+                if random.random() < eps:
+                    action = Actions.sample()
                 else:
-                    # with the probability epsilon we take a random action
-                    if random.random() < eps:
-                        action = Actions.sample()
-                    # with the probability 1 - epsilon we take the arg max action
-                    else:
-                        action = max(self.Q[position], key=self.Q[position].get)
+                    action = max(self.Q[position], key=self.Q[position].get)
 
-                    new_position = self.env.take_action(action, position)
-                    new_q = self.Q[position][action] + alpha * (0.0 + self.gamma * max(self.Q[new_position].values()) - self.Q[position][action])
+                new_position = self.env.take_action(action, position)
 
-                self.Q[position][action] = new_q
-                self.policy[position] = max(self.Q[position], key=self.Q[position].get)
-                delta = max(delta, abs(current_q - max(self.Q[position].values())))
-                
+                current_q = self.Q[position][action]
+                reward = self.env.get_instantaneous_reward(new_position)
+                max_next_q = max(self.Q[new_position].values())
+
+                self.Q[position][action] = current_q + alpha * (reward + self.gamma * max_next_q - current_q)
+
+                position = new_position
+
+        for state in self.Q.keys():
+            if not self.env.is_terminal(state):
+                self.policy[state] = max(self.Q[state], key=self.Q[state].get)
+            else:
+                self.policy[state] = None
