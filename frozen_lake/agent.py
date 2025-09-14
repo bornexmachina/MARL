@@ -127,3 +127,17 @@ class Agent:
                 self.policy[state] = max(self.Q[state], key=self.Q[state].get)
             else:
                 self.policy[state] = None
+
+    def policy_iteration(self):
+        # Policy evaluation
+        # for each state do
+        # V[s] = Sum_{a}P(a|s) Sum_{s'} [r + gamma * V[s']]
+        # let the initial policy be uniform
+        #
+        # Policy improvement
+        # for each non-terminal state
+        # Q[s, a] = Sum_{s'} P[s'|s, a] [r + gamma * V[s']]
+        # pick argmax a
+        # update the policy
+        # this time make stochastic actions if argmax returns more than one
+        raise NotImplementedError
