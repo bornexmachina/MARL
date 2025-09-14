@@ -128,16 +128,45 @@ class Agent:
             else:
                 self.policy[state] = None
 
+    def has_policy_changed(policy_old, policy_new):
+        raise NotImplementedError
+
     def policy_iteration(self):
+        self.initialize_V()
+        self.initialize_Q()
         # Policy evaluation
         # for each state do
         # V[s] = Sum_{a}P(a|s) Sum_{s'} [r + gamma * V[s']]
         # let the initial policy be uniform
-        #
+        all_actions = Actions.get_actions()
+        policy = {a: 1.0 / len(all_actions) for a in all_actions}
+        policy_stable = False
+        while not policy_stable:
+            # Policy evaluation
+            for position in self.V.keys():
+                if self.env.is_terminal(position):
+                    new_v = self.env.get_instantaneous_reward(position)
+                else:
+                    new_v = 0.0
+                    for action, probability in policy.items():
+                        new_position = self.env.take_action(action, position)
+                        new_v += probability * (0 + self.gamma * self.V[new_position])
+                self.V[position] = new_v
+
+
         # Policy improvement
         # for each non-terminal state
         # Q[s, a] = Sum_{s'} P[s'|s, a] [r + gamma * V[s']]
         # pick argmax a
         # update the policy
         # this time make stochastic actions if argmax returns more than one
+        new_policy = None
+
+
+
+
+        # check if the policy is stable
+        policy_stable = self.has_policy_changed(policy, new_policy)
+        policy = new_policy
+
         raise NotImplementedError
