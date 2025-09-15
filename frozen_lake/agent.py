@@ -129,7 +129,7 @@ class Agent:
                 self.policy[state] = None
 
     def has_policy_changed(policy_old, policy_new):
-        raise NotImplementedError
+        return policy_old == policy_new
 
     def policy_iteration(self):
         self.initialize_V()
@@ -139,7 +139,7 @@ class Agent:
         # V[s] = Sum_{a}P(a|s) Sum_{s'} [r + gamma * V[s']]
         # let the initial policy be uniform
         all_actions = Actions.get_actions()
-        policy = {a: 1.0 / len(all_actions) for a in all_actions}
+        policy = {s: {a: 1.0 / len(all_actions) for a in all_actions} for s in self.V.keys()}
         policy_stable = False
         while not policy_stable:
             # Policy evaluation
@@ -153,20 +153,30 @@ class Agent:
                         new_v += probability * (0 + self.gamma * self.V[new_position])
                 self.V[position] = new_v
 
+            # Policy improvement
+            # for each non-terminal state
+            # Q[s, a] = Sum_{s'} P[s'|s, a] [r + gamma * V[s']]
+            # pick argmax a
+            # update the policy
+            # this time make stochastic actions if argmax returns more than one
+            for position in self.V.keys():
+                if self.env.is_terminal(position):
+                    new_policy = None
+                    local_actions = {}
+                else:
+                    for action, probability in policy.items():
+                        new_position = self.env.take_action(action, position)
+                        new_action_value = 0 + self.gamma * self.V[new_position]
+                        local_actions[action] = new_action_value
 
-        # Policy improvement
-        # for each non-terminal state
-        # Q[s, a] = Sum_{s'} P[s'|s, a] [r + gamma * V[s']]
-        # pick argmax a
-        # update the policy
-        # this time make stochastic actions if argmax returns more than one
-        new_policy = None
+                    max_val = max(local_actions.values())
+                    max_actions = [k for k, v in local_actions.items() if v == max_val]
+                    
+                    self.Q[position][action] = max_val
+                    policy[position] = {a: 1.0 / len(max_actions) for a in max_actions}
 
-
-
-
-        # check if the policy is stable
-        policy_stable = self.has_policy_changed(policy, new_policy)
-        policy = new_policy
+            # check if the policy is stable
+            policy_stable = self.has_policy_changed(policy, new_policy)
+            policy = new_policy
 
         raise NotImplementedError
