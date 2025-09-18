@@ -131,8 +131,26 @@ class Agent:
     def has_policy_changed(policy_old, policy_new):
         return policy_old == policy_new
     
-    def policy_evaluation(self, policy):
-        raise NotImplementedError
+    def policy_evaluation(self, policy, V):
+        delta = float('inf')
+
+        while delta > self.theta:
+            delta = 0
+            for position in V.keys():
+                old_v = V[position]
+
+                action = policy[position]
+
+                if self.env.is_terminal(position):
+                    new_v = self.env.get_instantaneous_reward(position)
+                    policy[position] = None
+                else:
+                    new_position = self.env.take_action(action, position)
+                    new_v = 0 + self.gamma * self.V[new_position]
+
+                V[position] = new_v
+                delta = max(delta, abs(old_v - new_v))
+        return V
 
     def policy_iteration(self, max_iters=100):
         self.initialize_V()
