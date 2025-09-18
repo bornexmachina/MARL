@@ -133,11 +133,11 @@ class Agent:
     
     def policy_evaluation(self, policy, V):
         delta = float('inf')
-
         while delta > self.theta:
             delta = 0
-            for position in V.keys():
-                old_v = V[position]
+            V_local = V.copy()
+            for position in V_local.keys():
+                old_v = V_local[position]
 
                 action = policy[position]
 
@@ -146,10 +146,12 @@ class Agent:
                     policy[position] = None
                 else:
                     new_position = self.env.take_action(action, position)
-                    new_v = 0 + self.gamma * self.V[new_position]
+                    new_v = 0 + self.gamma * V_local[new_position]
 
-                V[position] = new_v
+                V_local[position] = new_v
                 delta = max(delta, abs(old_v - new_v))
+            V = V_local
+        
         return V
 
     def policy_iteration(self, max_iters=100):
@@ -159,10 +161,10 @@ class Agent:
         # for each state do
         # V[s] = Sum_{a}P(a|s) Sum_{s'} [r + gamma * V[s']]
         # let the initial policy be uniform
-        policy = {s: Actions.get_actions() for s in self.env.all_states()}
+        policy = {s: Actions.sample() for s in self.env.all_states()}
 
         for i in range(max_iters):            
-            self.value_iteration()
+            V = self.value_iteration(policy, self.V)
 
             # Policy improvement
             # for each non-terminal state
