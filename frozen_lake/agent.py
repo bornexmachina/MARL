@@ -179,18 +179,14 @@ class Agent:
                 if self.env.is_terminal(position):
                     new_policy[position] = None
                 else:
-                    local_actions = {}
-                    for action, _ in policy[position].items():
+                    for action in policy[position]:
                         new_position = self.env.take_action(action, position)
-                        new_action_value = 0 + self.gamma * V[new_position]
-                        local_actions[action] = new_action_value
+                        self.Q[position][action] = 0 + self.gamma * V[new_position]
 
-                    for action, val in local_actions.items():
-                        self.Q[position][action] = val
 
-                    max_val = max(local_actions.values())
-                    max_action = np.random.choice([k for k, v in local_actions.items() if v == max_val])
-                    new_policy[position] = max_action
+                    max_val = max(self.Q[position].values())
+                    max_actions = [k for k, v in self.Q[position].items() if v == max_val]
+                    new_policy[position] = max_actions
 
             # check if the policy is stable
             policy_stable = self.has_policy_changed(policy, new_policy)
