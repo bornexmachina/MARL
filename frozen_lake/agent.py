@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from enums import Actions
 from environment import Environment
 import constants as c
@@ -174,23 +175,22 @@ class Agent:
             # this time make stochastic actions if argmax returns more than one
             new_policy = policy.copy()
 
-            for position in self.V.keys():
+            for position in V.keys():
                 if self.env.is_terminal(position):
                     new_policy[position] = None
                 else:
                     local_actions = {}
                     for action, _ in policy[position].items():
                         new_position = self.env.take_action(action, position)
-                        new_action_value = 0 + self.gamma * self.V[new_position]
+                        new_action_value = 0 + self.gamma * V[new_position]
                         local_actions[action] = new_action_value
 
-                    
                     for action, val in local_actions.items():
                         self.Q[position][action] = val
 
                     max_val = max(local_actions.values())
-                    max_actions = [k for k, v in local_actions.items() if v == max_val]
-                    new_policy[position] = max_actions
+                    max_action = np.random.choice([k for k, v in local_actions.items() if v == max_val])
+                    new_policy[position] = max_action
 
             # check if the policy is stable
             policy_stable = self.has_policy_changed(policy, new_policy)
