@@ -195,3 +195,10 @@ class Agent:
                 break
 
             policy = new_policy
+
+    def policy_gradient(self):
+        """
+        Implement policy gradient following
+        https://gibberblot.github.io/rl-notes/single-agent/policy-gradients.html#sec-policy-based-policy-gradients
+        """
+        raise NotImplementedError
