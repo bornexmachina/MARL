@@ -202,3 +202,9 @@ class Agent:
         https://gibberblot.github.io/rl-notes/single-agent/policy-gradients.html#sec-policy-based-policy-gradients
         """
         raise NotImplementedError
+    
+    def sarsa(self)
+        """
+        https://gibberblot.github.io/rl-notes/single-agent/temporal-difference-learning.html
+        """
+        raise NotImplementedError
