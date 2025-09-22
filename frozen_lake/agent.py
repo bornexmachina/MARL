@@ -203,8 +203,33 @@ class Agent:
         """
         raise NotImplementedError
     
-    def sarsa(self)
+    def sarsa(self, init_position=(0, 0), alpha=0.75, num_episodes=100):
         """
         https://gibberblot.github.io/rl-notes/single-agent/temporal-difference-learning.html
         """
-        raise NotImplementedError
+        self.initialize_Q()
+
+        for _ in range(num_episodes):
+            position = init_position
+            if random.random() < eps:
+                action = Actions.sample()
+            else:
+                action = max(self.Q[position], key=self.Q[position].get)
+            while not self.env.is_terminal(position):
+                new_position = self.env.take_action(action, position)
+                reward = self.env.get_instantaneous_reward(new_position)
+
+                if not self.env.is_terminal(new_position):
+                    if random.random() < eps:
+                        new_action = Actions.sample()
+                    else:
+                        new_action = max(self.Q[new_position], key=self.Q[new_position].get)
+
+                    delta = reward + self.gamma * self.Q[new_position][new_action] - self.Q[position][action]
+                else:
+                    delta = reward - self.Q[position][action]
+                
+                self.Q[position][action] += alpha * delta
+
+                position = new_position
+                action = new_action
