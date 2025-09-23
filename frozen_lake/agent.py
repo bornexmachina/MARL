@@ -129,6 +129,7 @@ class Agent:
             else:
                 self.policy[state] = None
 
+    @staticmethod
     def has_policy_changed(policy_old, policy_new):
         return policy_old == policy_new
     
@@ -155,7 +156,7 @@ class Agent:
         
         return V
 
-    def policy_iteration(self, max_iters=100):
+    def policy_iteration(self, max_iters=1000_000):
         self.initialize_V()
         self.initialize_Q()
         # Policy evaluation
@@ -163,9 +164,10 @@ class Agent:
         # V[s] = Sum_{a}P(a|s) Sum_{s'} [r + gamma * V[s']]
         # let the initial policy be uniform
         policy = {s: Actions.sample() for s in self.env.all_states()}
+        all_actions = Actions.get_actions()
 
         for i in range(max_iters):            
-            V = self.value_iteration(policy, self.V)
+            V = self.policy_evaluation(policy, self.V)
 
             # Policy improvement
             # for each non-terminal state
@@ -179,14 +181,13 @@ class Agent:
                 if self.env.is_terminal(position):
                     new_policy[position] = None
                 else:
-                    for action in policy[position]:
+                    for action in all_actions:
                         new_position = self.env.take_action(action, position)
                         self.Q[position][action] = 0 + self.gamma * V[new_position]
 
-
                     max_val = max(self.Q[position].values())
                     max_actions = [k for k, v in self.Q[position].items() if v == max_val]
-                    new_policy[position] = max_actions
+                    new_policy[position] = random.choice(max_actions)
 
             # check if the policy is stable
             policy_stable = self.has_policy_changed(policy, new_policy)
@@ -195,6 +196,9 @@ class Agent:
                 break
 
             policy = new_policy
+        
+        self.policy = policy
+        self.V = V
 
     def policy_gradient(self):
         """
@@ -203,7 +207,7 @@ class Agent:
         """
         raise NotImplementedError
     
-    def sarsa(self, init_position=(0, 0), alpha=0.75, num_episodes=100):
+    def sarsa(self, init_position=(0, 0), alpha=0.75, eps=1E-3, num_episodes=100):
         """
         https://gibberblot.github.io/rl-notes/single-agent/temporal-difference-learning.html
         """
