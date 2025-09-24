@@ -204,6 +204,8 @@ class Agent:
         """
         Implement policy gradient following
         https://gibberblot.github.io/rl-notes/single-agent/policy-gradients.html#sec-policy-based-policy-gradients
+
+        Check if we add REINFORCE to follow the script --> 1 vs all for four actions
         """
         raise NotImplementedError
     
