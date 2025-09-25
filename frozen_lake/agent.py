@@ -129,6 +129,7 @@ class Agent:
             else:
                 self.policy[state] = None
 
+
     @staticmethod
     def has_policy_changed(policy_old, policy_new):
         return policy_old == policy_new
@@ -155,6 +156,7 @@ class Agent:
             V = V_local
         
         return V
+
 
     def policy_iteration(self, max_iters=1000_000):
         self.initialize_V()
@@ -200,6 +202,48 @@ class Agent:
         self.policy = policy
         self.V = V
 
+
+    @staticmethod
+    def diff_policy(policy):
+        raise NotImplementedError
+
+
+    def reinforce(self, policy, alpha, initial_position=(0, 0)):
+        position = initial_position
+
+        states = []
+        actions = []
+        rewards = []
+
+        # generate episode following policy
+        while not self.env.is_terminal(position):
+            action = policy[position]
+            
+            states.append(position)
+            actions.append(action)
+
+            new_position = self.env.take_action(action, position)
+            reward = self.env.get_instantaneous_reward(new_position)
+
+            rewards.append(reward)
+
+            position = new_position
+
+        
+
+        # for each (s, a) in the episode compute cumulated discounted reward and update theta
+        gamma_powers = self.gamma ** (np.arange(len(rewards)))
+        weighted_rewards = gamma_powers * rewards
+        total_rewards = np.cumsum(weighted_rewards)
+
+        # theta are learnable policy parameters --> "for the sake of the argument" we assume that we can get it from the diff-able policy
+        for idx, (s, a) in enumerate(zip(states, actions, rewards)):
+            G = total_rewards[idx]
+            
+            theta = policy.theta
+            theta += alpha * self.gamma ** idx * G * self.diff_policy(np.log(policy[s][a]))
+
+
     def policy_gradient(self):
         """
         Implement policy gradient following
@@ -208,7 +252,8 @@ class Agent:
         Check if we add REINFORCE to follow the script --> 1 vs all for four actions
         """
         raise NotImplementedError
-    
+
+
     def sarsa(self, init_position=(0, 0), alpha=0.75, eps=1E-3, num_episodes=100):
         """
         https://gibberblot.github.io/rl-notes/single-agent/temporal-difference-learning.html
