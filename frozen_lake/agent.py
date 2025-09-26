@@ -203,11 +203,6 @@ class Agent:
         self.V = V
 
 
-    @staticmethod
-    def diff_policy(policy):
-        raise NotImplementedError
-
-
     def reinforce(self, policy, alpha, initial_position=(0, 0)):
         position = initial_position
 
@@ -217,7 +212,7 @@ class Agent:
 
         # generate episode following policy
         while not self.env.is_terminal(position):
-            action = policy[position]
+            action = policy.choose_action(position)
             
             states.append(position)
             actions.append(action)
@@ -240,8 +235,8 @@ class Agent:
         for idx, (s, a) in enumerate(zip(states, actions, rewards)):
             G = total_rewards[idx]
             
-            theta = policy.theta
-            theta += alpha * self.gamma ** idx * G * self.diff_policy(np.log(policy[s][a]))
+            theta = policy.get_theta()
+            theta += alpha * self.gamma ** idx * G * policy.log_diff(s, a)
 
 
     def policy_gradient(self):
