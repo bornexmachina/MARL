@@ -20,3 +20,7 @@ class SoftmaxPolicy:
     def derivative_single_sample(self, logits):
         p = self.softmax(logits)
         return np.diag(p) - np.outer(p, p)
+    
+    def derivative_batch(self, logits, Y):
+        p = self.softmax(logits)
+        return p - Y
