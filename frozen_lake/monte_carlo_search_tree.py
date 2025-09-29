@@ -4,7 +4,30 @@
 # and MCTS itself
 
 class Node:
-    pass
+    def __init__(self):
+        pass
+
+    def select(self):
+        pass
+
+    def expand(self):
+        pass
+
+    def back_propagate(self):
+        pass
+
+    def get_visits(self):
+        pass
 
 class MCTS:
-    pass
+    def __init__(self):
+        pass
+
+    def mcts(self):
+        pass
+
+    def create_root_node(self):
+        pass
+
+    def simulate(self):
+        pass
