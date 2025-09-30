@@ -8,6 +8,13 @@ class Node:
         pass
 
     def select(self):
+        """
+        While state s is fully expanded do:
+            Select action a to apply in s using a multi-armed bandit algorithm
+            Choose one outcome s' according to P(s'|s)
+            s <- s'
+        return s
+        """
         pass
 
     def expand(self):
