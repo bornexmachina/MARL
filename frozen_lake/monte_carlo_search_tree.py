@@ -2,12 +2,19 @@
 # we follow the implementation of gibberblot
 # we will need a node for the trees
 # and MCTS itself
+import random
+from enums import Actions
+from environment import Environment as env
+
 
 class Node:
     def __init__(self):
         pass
 
-    def select(self):
+    def is_terminal(self, state):
+        pass
+
+    def select(self, state, eps=0.1):
         """
         While state s is fully expanded do:
             Select action a to apply in s using a multi-armed bandit algorithm
@@ -15,10 +22,22 @@ class Node:
             s <- s'
         return s
         """
+
+        # reimplement, I got it wrong first time
         pass
 
-    def expand(self):
-        pass
+
+    def expand(self, state):
+        """
+        if state s is fully expanded then
+            randomly select action a to apply in s
+            expand one outcome state s' according to P(s'|s) and observe reward r
+        return s'
+        """
+        if not env.is_terminal(state):
+            action = Actions.sample()
+            state = env.take_action(action, state)
+        return state
 
     def back_propagate(self):
         pass
