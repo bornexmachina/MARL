@@ -11,10 +11,13 @@ class Node:
     def __init__(self):
         pass
 
+    def is_expanded(self):
+        pass
+
     def is_terminal(self, state):
         pass
 
-    def select(self, state, eps=0.1):
+    def select(self, eps=0.1):
         """
         While state s is fully expanded do:
             Select action a to apply in s using a multi-armed bandit algorithm
@@ -22,9 +25,12 @@ class Node:
             s <- s'
         return s
         """
-
-        # reimplement, I got it wrong first time
-        pass
+        if not self.is_expanded() or self.is_terminal():
+            return self
+        else:
+            action = Actions.sample()
+            state = env.take_action(action, state)
+            return state
 
 
     def expand(self, state):
