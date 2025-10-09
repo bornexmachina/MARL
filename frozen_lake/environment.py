@@ -65,3 +65,12 @@ class Environment:
     
     def all_states(self) -> list[tuple[int, int]]:
         return list(product(range(self.lake.shape[0]), range(self.lake.shape[1])))
+    
+    def all_actions_in_state(self):
+        """
+        No actions in a terminal state, otherwise always full set of actions
+        """
+        actions = set()
+        if not self.is_terminal():
+            actions |= set(Actions.get_actions())
+        return actions
