@@ -7,6 +7,20 @@ from enums import Actions
 from environment import Environment as env
 
 
+class Bandit:
+    def __init__(self, available_actions, q_function, eps=0.1):
+        self.available_actions = available_actions
+        self.q_function = q_function
+        self.eps = eps
+
+    def select_action(self):
+        if random.uniform() < self.eps:
+            return random.choice(self.available_actions)
+        max_value = max(self.q_function.values())
+        max_keys = [k for k, v in self.q_function.items() if v == max_value]
+        return random.choice(max_keys)
+
+
 class Node:
     def __init__(self, state, env, parent):
         """
@@ -29,7 +43,7 @@ class Node:
         """
         return len(self.children) == len(self.env.all_actions_in_state())
 
-    def select(self, eps=0.1):
+    def select(self):
         """
         If the node has not explored all options, i.e. is not expanded or it is a leaf node we stay in the node
         Otherwise we choose to EXPLOIT --> we check which actions have already been taken, i.e. which children we have visited
