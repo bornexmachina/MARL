@@ -70,6 +70,11 @@ class Node:
         return self
 
     def back_propagate(self):
+        """
+        Reward is backpropagated from the node to its parent
+        --> apply recursion
+        --> discount in each step
+        """
         pass
 
     def get_visits(self):
